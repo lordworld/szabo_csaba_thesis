@@ -35,6 +35,20 @@ docker_init() {
 
 }
 
+macvlan_add(){
+	docker network create -d macvlan \
+	--subnet=$1 \
+	-o parent=ens160.$2 \
+	macvlan_$2
+
+	echo "macvlan_$2 has been added to subnet $1.."
+}
+
+docker_network_connect(){
+	docker network connect --ip $1 $2 $3
+	echo "$3 docker container has connected to $2 with IP $1.."
+}
+
 # Linux 1 config 
 linux1() {
 	echo "Initialize Linux 1..."
@@ -49,14 +63,19 @@ linux1() {
 	alias c_ovs3='docker exec ovs3'
 	alias c_ctr='docker exec vController'
 
+# 	Verify
+	echo "Is everything okay? If not press Ctrl+C.. (Press enter) "
+	read Verify
+
 # OVS1 docker network interface
 
 	echo "Install OVS1 docker network interfaces: macvlan211, macvlan213, macvlan312, macvlan213, macvlan400, macvlan511"
 #	macvlan211
-	docker network create -d macvlan \
-	--subnet=10.0.11.0/30 \
-	-o parent=ens160.211 \
-	macvlan_211
+	macvlan_add 10.0.11.0/30 211
+#	docker network create -d macvlan \
+#	--subnet=10.0.11.0/30 \
+#	-o parent=ens160.211 \
+#	macvlan_211
 	
 #	macvlan213
 	docker network create -d macvlan \
@@ -87,20 +106,25 @@ linux1() {
 	--subnet=192.168.1.0/29 \
 	-o parent=ens160.511 \
 	macvlan_511
-	
+
 # OVS3 docker network interface
 	echo "Install OVS3 docker network interfaces: macvlan334, macvlan533"
-	macvlan334
+#	macvlan334
 	docker network create -d macvlan \
 	--subnet=172.16.34.0/29 \
 	-o parent=ens160.334 \
 	macvlan_334
 	
-	macvlan533
+#	macvlan533
 	docker network create -d macvlan \
 	--subnet=192.168.3.0/29 \
 	-o parent=ens160.533 \
 	macvlan_533
+
+# 	Verify
+	echo "Is everything okay? If not press Ctrl+C.. (Press enter)"
+	read Verify
+
 
 # Ryu
 	echo "Run Ryu controller from osrg/run and connect to macvlan400"
@@ -117,7 +141,8 @@ linux1() {
 	
 	echo "Connect OVS1 interfaces"
 	
-	docker network connect --ip 10.0.11.2 macvlan_211 ovs1
+	docker_network_connect 10.0.11.2 macvlan_211 ovs1
+#	docker network connect --ip 10.0.11.2 macvlan_211 ovs1
 	docker network connect --ip 10.0.31.2 macvlan_213 ovs1
 	docker network connect --ip 172.16.12.2 macvlan_312 ovs1
 	docker network connect --ip 172.16.13.2 macvlan_313 ovs1
