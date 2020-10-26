@@ -53,7 +53,7 @@ docker_network_connect(){
 linux1() {
 	echo "Initialize Linux 1..."
 	
-	if ! [-x "$(command -v docker)"]; then
+	if  command -v docker; then
 		echo "Installing Docker..."
 		docker_init
 
