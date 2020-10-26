@@ -39,8 +39,10 @@ docker_init() {
 linux1() {
 	echo "Initialize Linux 1..."
 	
-	docker_init
-
+	if ! [-x "$(command -v docker)"]; then
+		echo "Installing Docker..."
+		docker_init
+	fi
 	echo "aliases: docker, c_ovs1, c_ovs3, c_ctr"
 	alias docker='sudo docker'
 	alias c_ovs1='docker exec ovs1'
@@ -186,7 +188,11 @@ linux1() {
 # Linux 2 config
 linux2() {
 	echo "Initialize Linux 2..."
-	docker_init
+	
+	if ! [-x "$(command -v docker)"]; then
+		echo "Installing Docker..."
+		docker_init
+	fi
 	
 	echo "aliases: docker, c_ovs2, c_ovs4"
 	alias docker='sudo docker'
