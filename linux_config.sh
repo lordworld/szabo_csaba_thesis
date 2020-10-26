@@ -56,6 +56,9 @@ linux1() {
 	if ! [-x "$(command -v docker)"]; then
 		echo "Installing Docker..."
 		docker_init
+
+	else
+		echo "Docker has installed already"
 	fi
 	echo "aliases: docker, c_ovs1, c_ovs3, c_ctr"
 	alias docker='sudo docker'
