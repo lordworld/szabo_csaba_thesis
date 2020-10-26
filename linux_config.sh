@@ -80,6 +80,9 @@ linux1() {
 #	-o parent=ens160.211 \
 #	macvlan_211
 	
+	echo "Press a button.."
+	read something
+	
 #	macvlan213
 	docker network create -d macvlan \
 	--subnet=10.0.31.0/30 \
