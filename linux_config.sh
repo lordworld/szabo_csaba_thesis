@@ -53,7 +53,7 @@ docker_network_connect(){
 linux1() {
 	echo "Initialize Linux 1..."
 	
-	if  command -v docker; then
+	if  command -v docker &> /dev/null; then
 		echo "Installing Docker..."
 		docker_init
 
@@ -82,7 +82,7 @@ linux1() {
 	
 	echo "Press a button.."
 	read something
-	
+
 #	macvlan213
 	docker network create -d macvlan \
 	--subnet=10.0.31.0/30 \
@@ -220,7 +220,7 @@ linux1() {
 linux2() {
 	echo "Initialize Linux 2..."
 	
-	if ! [-x "$(command -v docker)"]; then
+if  command -v docker &> /dev/null; then
 		echo "Installing Docker..."
 		docker_init
 
