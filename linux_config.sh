@@ -220,6 +220,9 @@ linux2() {
 	if ! [-x "$(command -v docker)"]; then
 		echo "Installing Docker..."
 		docker_init
+
+	else
+		echo "Docker has installed already"
 	fi
 	
 	echo "aliases: docker, c_ovs2, c_ovs4"
