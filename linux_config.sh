@@ -220,7 +220,7 @@ linux1() {
 linux2() {
 	echo "Initialize Linux 2..."
 	
-if  command -v docker &> /dev/null; then
+if ! command -v docker &> /dev/null; then
 		echo "Installing Docker..."
 		docker_init
 
