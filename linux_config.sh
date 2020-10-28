@@ -36,18 +36,43 @@ docker_init() {
 }
 
 macvlan_add(){
-	docker network create -d macvlan \
-	--subnet=$1 \
-	-o parent=ens160.$2 \
-	macvlan_$2
+	subnetID = $1
+	macvlanID = $2
+
+	sudo docker network create -d macvlan \
+	--subnet=$subnetID \
+	-o parent=ens160.$macvlanID \
+	macvlan_$macvlanID
 
 	echo "macvlan_$2 has been added to subnet $1.."
 }
 
-docker_network_connect(){
-	docker network connect --ip $1 $2 $3
-	echo "$3 docker container has connected to $2 with IP $1.."
+docker_run(){
+	name = $1
+	image = $2
+
+	sudo docker run -itd --name $name --cap-add NET_ADMIN $image /bin/bash
+	echo "$name container has started from $image image as NET_ADMIN..."
 }
+
+docker_network_connect(){
+	ip_addr = $1
+	macvlan_id = $2
+	container_name = $3
+	
+#	example: docker network connect --ip 10.0.11.2 macvlan_211 ovs1
+	sudo docker network connect --ip $ip_addr $macvlan_id $container_name
+	echo "$container_name docker container has connected to $madvlan_id with IP $ip_addr.."
+}
+
+docker_exec(){
+	# you can add any parameters...
+	sudo docker exec $@
+	echo "sudo docker exec $@"
+	read Verify
+}
+
+
 
 # Linux 1 config 
 linux1() {
@@ -84,64 +109,90 @@ linux1() {
 	read something
 
 #	macvlan213
-	docker network create -d macvlan \
-	--subnet=10.0.31.0/30 \
-	-o parent=ens160.213 \
-	macvlan_213
-	
+	macvlan_add 10.0.31.0/30 213
+#	docker network create -d macvlan --subnet=10.0.31.0/30 -o parent=ens160.213 macvlan_213
+	echo "Press a button.."
+	read something
+
 #	macvlan312
-	docker network create -d macvlan \
-	--subnet=172.16.12.0/29 \
-	-o parent=ens160.312 \
-	macvlan_312
+	macvlan_add 172.16.12.0/29 312
+#	docker network create -d macvlan --subnet=172.16.12.0/29 -o parent=ens160.312 macvlan_312
+
+	echo "Press a button.."
+	read something
 		
 #	macvlan313
-	docker network create -d macvlan \
-	--subnet=172.16.13.0/29 \
-	-o parent=ens160.313 \
-	macvlan_313
+	macvlan_add 172.16.13.0/29 313
+#	docker network create -d macvlan \
+#	--subnet=172.16.13.0/29 \
+#	-o parent=ens160.313 \
+#	macvlan_313
+
+	echo "Press a button.."
+	read something
 		
 #	macvlan400
-	docker network create -d macvlan \
-	--subnet=172.16.0.0/28 \
-	-o parent=ens160.400 \
-	macvlan_400
-	
+	macvlan_add 172.16.0.0/28 400
+#	docker network create -d macvlan \
+#	--subnet=172.16.0.0/28 \
+#	-o parent=ens160.400 \
+#	macvlan_400
+
+	echo "Press a button.."
+	read something
+
 #	macvlan511
-	docker network create -d macvlan \
-	--subnet=192.168.1.0/29 \
-	-o parent=ens160.511 \
-	macvlan_511
+	macvlan_add 192.168.1.0/29 511
+#	docker network create -d macvlan \
+#	--subnet=192.168.1.0/29 \
+#	-o parent=ens160.511 \
+#	macvlan_511
+
+	echo "Press a button.."
+	read something
 
 # OVS3 docker network interface
 	echo "Install OVS3 docker network interfaces: macvlan334, macvlan533"
 #	macvlan334
-	docker network create -d macvlan \
-	--subnet=172.16.34.0/29 \
-	-o parent=ens160.334 \
-	macvlan_334
+	macvlan_add 172.16.34.0/29 334
+#	docker network create -d macvlan \
+#	--subnet=172.16.34.0/29 \
+#	-o parent=ens160.334 \
+#	macvlan_334
+	
+	echo "Press a button.."
+	read something
 	
 #	macvlan533
-	docker network create -d macvlan \
-	--subnet=192.168.3.0/29 \
-	-o parent=ens160.533 \
-	macvlan_533
+	macvlan_add 192.168.3.0/29 533
+#	docker network create -d macvlan \
+#	--subnet=192.168.3.0/29 \
+#	-o parent=ens160.533 \
+#	macvlan_533
 
 # 	Verify
-	echo "Is everything okay? If not press Ctrl+C.. (Press enter)"
+	echo "Is everything okay so far? If not press Ctrl+C.. (Press enter)"
 	read Verify
 
 
 # Ryu
 	echo "Run Ryu controller from osrg/run and connect to macvlan400"
-	docker run -itd --name vController osrg/ryu /bin/bash
-	docker network connect --ip 172.16.0.10 macvlan_400 vController
+	docker_run vController osrg/ryu
+#	sudo docker run -itd --name vController osrg/ryu /bin/bash
+	docker_network_connect 172.16.0.10 macvlan_400 vController
+
+	echo "Ryu has started. Everything is okay?"
+	read Verify
 
 #OVS1 container
 #	Fos: docker run -itd --name ovs1 lordworld/my_ovs_template /bin/bash
 	
 	echo "Run ovs1 container from socketplane/openvswitch as NET_ADMIN."
-	docker run -itd --name=ovs1 --cap-add NET_ADMIN socketplane/openvswitch
+#	docker run -itd --name=ovs1 --cap-add NET_ADMIN socketplane/openvswitch
+	docker_run ovs1 socketplane/openvswitch
+
+	echo "OVS1 has started. Everything is okay?"
+	read Verify
 	
 #	Forrás: <https://hub.docker.com/r/socketplane/openvswitch>
 	
@@ -149,24 +200,30 @@ linux1() {
 	
 	docker_network_connect 10.0.11.2 macvlan_211 ovs1
 #	docker network connect --ip 10.0.11.2 macvlan_211 ovs1
-	docker network connect --ip 10.0.31.2 macvlan_213 ovs1
-	docker network connect --ip 172.16.12.2 macvlan_312 ovs1
-	docker network connect --ip 172.16.13.2 macvlan_313 ovs1
-	docker network connect --ip 172.16.0.2 macvlan_400 ovs1
-	docker network connect --ip 192.168.1.2 macvlan_511 ovs1
+	docker_network_connect 10.0.31.2 macvlan_213 ovs1
+	docker_network_connect 172.16.12.2 macvlan_312 ovs1
+	docker_network_connect 172.16.13.2 macvlan_313 ovs1
+	docker_network_connect 172.16.0.2 macvlan_400 ovs1
+	docker_network_connect 192.168.1.2 macvlan_511 ovs1
+
+	echo "OVS1 has connected to networks. Everything is okay?"
+	read Verify
 
 # OVS3 container
 
 	echo "Run ovs3 container from socketplane/openvswitch as NET_ADMIN."
-	docker run -itd --name ovs3 lordworld/my_ovs_template /bin/bash
+	docker_run -ovs3 socketplane/openvswitch
 	
 	echo "Connect OVS3 interfaces"
-	docker network connect --ip 172.16.13.3 macvlan_313 ovs3
-	docker network connect --ip 172.16.34.2 macvlan_334 ovs3
-	docker network connect --ip 172.16.0.4 macvlan_400 ovs3
-	docker network connect --ip 192.168.3.2 macvlan_533 ovs3
+	docker_network_connect 172.16.13.3 macvlan_313 ovs3
+	docker_network_connect 172.16.34.2 macvlan_334 ovs3
+	docker_network_connect 172.16.0.4 macvlan_400 ovs3
+	docker_network_connect 192.168.3.2 macvlan_533 ovs3
+
+	echo "OVS3 has connected to networks. Everything is okay?"
+	read Verify
 	
-	# Vertify:
+	# Verify:
 		docker network ls
 	#	docker network inspect macvlan_xyz> | bridge | type…
 	#	ip addr show 
@@ -180,38 +237,38 @@ linux1() {
 
 # OVS1 br config
 	echo "Configure OVS1 bridge (ovs-br1)"
-	docker exec ovs1 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker exec ovs1 ovs-vsctl add-br ovs-br1
+	docker_exec ovs1 /usr/share/openvswitch/scripts/ovs-ctl start
+	docker_exec ovs1 ovs-vsctl add-br ovs-br1
 #	docker exec ovs1 ifconfig ovs-br1 (*IP* netmask *netmask*) up
-#	Vertify:
-	docker exec ovs1 ovs-vsctl show
+#	Verify:
+	docker_exec ovs1 ovs-vsctl show
 	
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth1
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth3
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth2
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth4
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth5
-	docker exec ovs1 ovs-vsctl add-port ovs-br1 eth6
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth1
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth3
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth2
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth4
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth5
+	docker_exec ovs1 ovs-vsctl add-port ovs-br1 eth6
 	
-	docker exec ovs1 ovs-vsctl set-controller ovs-br1 tcp:172.16.0.10
+	docker_exec ovs1 ovs-vsctl set-controller ovs-br1 tcp:172.16.0.10
 	
 #	Vertify:	
-	docker exec ovs1 ovs-vsctl show
+	docker_exec ovs1 ovs-vsctl show
 
 # OVS3 br config
 	echo "Configure OVS3 bridge (ovs-br3)"
-	docker exec ovs3 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker exec ovs3 ovs-vsctl add-br ovs-br3
+	docker_exec ovs3 /usr/share/openvswitch/scripts/ovs-ctl start
+	docker_exec ovs3 ovs-vsctl add-br ovs-br3
 	
 #	Vertify:
-	docker exec ovs1 ovs-vsctl show
+	docker_exec ovs1 ovs-vsctl show
 	
-	docker exec ovs3 ovs-vsctl add-port ovs-br3 eth1
-	docker exec ovs3 ovs-vsctl add-port ovs-br3 eth2
-	docker exec ovs3 ovs-vsctl add-port ovs-br3 eth3
-	docker exec ovs3 ovs-vsctl add-port ovs-br3 eth4
+	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth1
+	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth2
+	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth3
+	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth4
 
-	docker exec ovs1 ovs-vsctl set-controller ovs-br3 tcp:172.16.0.10
+	docker_exec ovs1 ovs-vsctl set-controller ovs-br3 tcp:172.16.0.10
 }
 
 
@@ -220,7 +277,7 @@ linux1() {
 linux2() {
 	echo "Initialize Linux 2..."
 	
-if ! command -v docker &> /dev/null; then
+if command -v docker &> /dev/null; then
 		echo "Installing Docker..."
 		docker_init
 
@@ -238,111 +295,124 @@ if ! command -v docker &> /dev/null; then
 	echo "Install OVS2 docker network interfaces: macvlan223, macvlan312, macvlan324, macvlan400, macvlan522"
 	
 #	Macvlan223
-	docker network create -d macvlan \
-	--subnet=10.0.32.0/30 \
-	-o parent=ens160.223 \
-	macvlan_223
+	macvlan_add 10.0.32.0/30 223
+#	docker network create -d macvlan \
+#	--subnet=10.0.32.0/30 \
+#	-o parent=ens160.223 \
+#	macvlan_223
 	
 #	Macvlan312
-	docker network create -d macvlan \
-	--subnet=172.16.12.0/29 \
-	-o parent=ens160.312 \
-	macvlan_312
+	macvlan_add 172.16.12.0/29 312
+#	docker network create -d macvlan \
+#	--subnet=172.16.12.0/29 \
+#	-o parent=ens160.312 \
+#	macvlan_312
 	
 #	Macvlan324
-	docker network create -d macvlan \
-	--subnet=172.16.24.0/29 \
-	-o parent=ens160.324 \
-	macvlan_324
+	macvlan_add 172.16.24.0/29 324
+#	docker network create -d macvlan \
+#	--subnet=172.16.24.0/29 \
+#	-o parent=ens160.324 \
+#	macvlan_324
 		
 #	Macvlan400
-	docker network create -d macvlan \
-	--subnet=172.16.0.0/28 \
-	-o parent=ens160.400 \
-	macvlan_400
+	macvlan_add 172.16.0.0/28 400
+#	docker network create -d macvlan \
+#	--subnet=172.16.0.0/28 \
+#	-o parent=ens160.400 \
+#	macvlan_400
 		
 #	Macvlan522
-	docker network create -d macvlan \
-	--subnet=192.168.2.0/29 \
-	-o parent=ens160.522 \
-	macvlan_522
+	macvnal_add 192.168.2.0/29 522
+#	docker network create -d macvlan \
+#	--subnet=192.168.2.0/29 \
+#	-o parent=ens160.522 \
+#	macvlan_522
 
+	echo "macvlans for ovs2 has added. Everything is okay?"
+	read Verify
 	
 # OVS4 docker network interface
 	echo "Install OVS4 docker network interfaces: macvlan334, macvlan544"
 #	macvlan334
-	docker network create -d macvlan \
-	--subnet=172.16.34.0/29 \
-	-o parent=ens160.334 \
-	macvlan_334
+	macvlan_add 172.16.34.0/29 334
+#	docker network create -d macvlan \
+#	--subnet=172.16.34.0/29 \
+#	-o parent=ens160.334 \
+#	macvlan_334
 	
 #	Macvlan544
-	docker network create -d macvlan \
-	--subnet=192.168.4.0/29 \
-	-o parent=ens160.544 \
-	macvlan_544
+	macvlan_add 192.168.4.0/29 544
+#	docker network create -d macvlan \
+#	--subnet=192.168.4.0/29 \
+#	-o parent=ens160.544 \
+#	macvlan_544
+
+	echo "macvlans for ovs4 has added. Everything is okay?"
+	read Verify
 
 #OVS2 container
 	
 	echo "Run ovs2 container from socketplane/openvswitch as NET_ADMIN."
-	docker run -itd --name=ovs2 --cap-add NET_ADMIN socketplane/openvswitch
-	
+#	docker run -itd --name=ovs2 --cap-add NET_ADMIN socketplane/openvswitch
+	docker_run ovs2 socketplane/openvswitch
 	
 	echo "Connect OVS2 interfaces"
 	
-	docker network connect --ip 10.0.32.2 macvlan_223 ovs2
-	docker network connect --ip 172.16.12.3 macvlan_312 ovs2
-	docker network connect --ip 172.16.24.2 macvlan_324 ovs2
-	docker network connect --ip 172.16.0.3 macvlan_400 ovs2
-	docker network connect --ip 192.168.2.2 macvlan_511 ovs2
+	docker_network_connect 10.0.32.2 macvlan_223 ovs2
+	docker_network_connect 172.16.12.3 macvlan_312 ovs2
+	docker_network_connect 172.16.24.2 macvlan_324 ovs2
+	docker_network_connect 172.16.0.3 macvlan_400 ovs2
+	docker_network_connect 192.168.2.2 macvlan_511 ovs2
 
 # OVS4 container
 
 	echo "Run ovs4 container from socketplane/openvswitch as NET_ADMIN and connect interfaces"
-	docker run -itd --name=ovs4 --cap-add NET_ADMIN socketplane/openvswitch
+#	docker run -itd --name=ovs4 --cap-add NET_ADMIN socketplane/openvswitch
+	docker_run ovs4 socketplane/openvswitch
 	
 	echo "Connect OVS4 interfaces"
-	docker network connect --ip 172.16.24.3 macvlan_324 ovs4
-	docker network connect --ip 172.16.34.3 macvlan_334 ovs4
-	docker network connect --ip 172.16.0.5 macvlan_400 ovs4
-	docker network connect --ip 192.168.4.2 macvlan_544 ovs4
+	docker_network_connect 172.16.24.3 macvlan_324 ovs4
+	docker_network_connect 172.16.34.3 macvlan_334 ovs4
+	docker_network_connect 172.16.0.5 macvlan_400 ovs4
+	docker_network_connect 192.168.4.2 macvlan_544 ovs4
 	
 
 
 # OVS2 br config
 	echo "Configure OVS2 bridge (ovs-br1)"
-	docker exec ovs2 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker exec ovs2 ovs-vsctl add-br ovs-br1
+	docker_exec ovs2 /usr/share/openvswitch/scripts/ovs-ctl start
+	docker_exec ovs2 ovs-vsctl add-br ovs-br1
 #	docker exec ovs2 ifconfig ovs-br1 (*IP* netmask *netmask*) up
 #	Vertify:       
-	docker exec ovs2 ovs-vsctl show
+	docker_exec ovs2 ovs-vsctl show
 				   
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth1
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth3
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth2
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth4
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth5
-	docker exec ovs2 ovs-vsctl add-port ovs-br2 eth6
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth1
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth3
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth2
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth4
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth5
+	docker_exec ovs2 ovs-vsctl add-port ovs-br2 eth6
 				   
-	docker exec ovs2 ovs-vsctl set-controller ovs-br2 tcp:172.16.0.10
+	docker_exec ovs2 ovs-vsctl set-controller ovs-br2 tcp:172.16.0.10
 	
 #	Vertify:	
-	docker exec ovs1 ovs-vsctl show
+	docker_exec ovs1 ovs-vsctl show
 
 # OVS4 br config
 	echo "Configure OVS4 bridge (ovs-br4)"
-	docker exec ovs4 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker exec ovs4 ovs-vsctl add-br ovs-br3
+	docker_exec ovs4 /usr/share/openvswitch/scripts/ovs-ctl start
+	docker_exec ovs4 ovs-vsctl add-br ovs-br3
 	
 #	Vertify:
-	docker exec ovs4 ovs-vsctl show
+	docker_exec ovs4 ovs-vsctl show
 	
-	docker exec ovs4 ovs-vsctl add-port ovs-br4 eth1
-	docker exec ovs4 ovs-vsctl add-port ovs-br4 eth2
-	docker exec ovs4 ovs-vsctl add-port ovs-br4 eth3
-	docker exec ovs4 ovs-vsctl add-port ovs-br4 eth4
+	docker_exec ovs4 ovs-vsctl add-port ovs-br4 eth1
+	docker_exec ovs4 ovs-vsctl add-port ovs-br4 eth2
+	docker_exec ovs4 ovs-vsctl add-port ovs-br4 eth3
+	docker_exec ovs4 ovs-vsctl add-port ovs-br4 eth4
 
-	docker exec ovs1 ovs-vsctl set-controller ovs-br4 tcp:172.16.0.10
+	docker_exec ovs1 ovs-vsctl set-controller ovs-br4 tcp:172.16.0.10
 }
 
 usage() {
