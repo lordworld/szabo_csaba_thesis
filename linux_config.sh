@@ -61,7 +61,7 @@ docker_run(){
 	NAME="$1"
 	IMAGE="$2"
 
-	sudo docker run -itd --name $NAME --cap-add NET_ADMIN $IMAGE /bin/bash
+	sudo docker run -itd --name $NAME --cap-add NET_ADMIN $IMAGE "$3"
 	echo "$NAME container has started from $IMAGE image as NET_ADMIN..."
 }
 
@@ -182,10 +182,10 @@ linux1() {
 
 # Ryu
 	echo "Run Ryu controller from osrg/run and connect to macvlan400"
-	docker_run vController osrg/ryu
+	docker_run vController osrg/ryu /bin/bash
+
 #	sudo docker run -itd --name vController osrg/ryu /bin/bash
 	docker_network_connect 172.16.0.10 macvlan_400 vController
-
 	echo "Ryu has started. Everything is okay?"
 	read Verify
 
@@ -217,7 +217,7 @@ linux1() {
 # OVS3 container
 
 	echo "Run ovs3 container from socketplane/openvswitch as NET_ADMIN."
-	docker_run -ovs3 socketplane/openvswitch
+	docker_run ovs3 socketplane/openvswitch
 	
 	echo "Connect OVS3 interfaces"
 	docker_network_connect 172.16.13.3 macvlan_313 ovs3
