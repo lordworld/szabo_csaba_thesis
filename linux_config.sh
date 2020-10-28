@@ -77,8 +77,8 @@ docker_network_connect(){
 
 docker_exec(){
 	# you can add any parameters...
-	sudo docker exec "$@"
 	echo "sudo docker exec $@"
+	sudo docker exec "$@"
 	read Verify
 }
 
@@ -203,8 +203,9 @@ linux1() {
 	
 	echo "Connect OVS1 interfaces"
 	
+#	example: docker network connect --ip 10.0.11.2 macvlan_211 ovs1
+
 	docker_network_connect 10.0.11.2 macvlan_211 ovs1
-#	docker network connect --ip 10.0.11.2 macvlan_211 ovs1
 	docker_network_connect 10.0.31.2 macvlan_213 ovs1
 	docker_network_connect 172.16.12.2 macvlan_312 ovs1
 	docker_network_connect 172.16.13.2 macvlan_313 ovs1
@@ -266,14 +267,14 @@ linux1() {
 	docker_exec ovs3 ovs-vsctl add-br ovs-br3
 	
 #	Vertify:
-	docker_exec ovs1 ovs-vsctl show
+	docker_exec ovs3 ovs-vsctl show
 	
 	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth1
 	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth2
 	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth3
 	docker_exec ovs3 ovs-vsctl add-port ovs-br3 eth4
 
-	docker_exec ovs1 ovs-vsctl set-controller ovs-br3 tcp:172.16.0.10
+	docker_exec ovs3 ovs-vsctl set-controller ovs-br3 tcp:172.16.0.10
 }
 
 
