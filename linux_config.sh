@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Docker install
-docker_init() {
+docker_install() {
 # Docker repository
 	echo "Init docker..."
 	sudo apt-get update
@@ -33,6 +33,16 @@ docker_init() {
 	sudo apt-get update
 	sudo apt-get install docker-ce docker-ce-cli containerd.io
 
+}
+
+docker_init(){
+	if command -v docker &> /dev/null; then
+		echo "Installing Docker..."
+		docker_install
+
+	else
+		echo "Docker has installed already"
+	fi
 }
 
 macvlan_add(){
@@ -78,13 +88,8 @@ docker_exec(){
 linux1() {
 	echo "Initialize Linux 1..."
 	
-	if  command -v docker &> /dev/null; then
-		echo "Installing Docker..."
-		docker_init
+	docker_init
 
-	else
-		echo "Docker has installed already"
-	fi
 	echo "aliases: docker, c_ovs1, c_ovs3, c_ctr"
 	alias docker='sudo docker'
 	alias c_ovs1='docker exec ovs1'
@@ -277,13 +282,7 @@ linux1() {
 linux2() {
 	echo "Initialize Linux 2..."
 	
-if command -v docker &> /dev/null; then
-		echo "Installing Docker..."
-		docker_init
-
-	else
-		echo "Docker has installed already"
-	fi
+	docker_init
 	
 	echo "aliases: docker, c_ovs2, c_ovs4"
 	alias docker='sudo docker'
