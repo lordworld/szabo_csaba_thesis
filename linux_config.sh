@@ -46,29 +46,29 @@ docker_init(){
 }
 
 macvlan_add(){
-	subnetID = $1
-	macvlanID = $2
+	subnetID = "$1"
+	macvlanID = "$2"
 
 	sudo docker network create -d macvlan \
 	--subnet=$subnetID \
 	-o parent=ens160.$macvlanID \
 	macvlan_$macvlanID
 
-	echo "macvlan_$2 has been added to subnet $1.."
+	echo "macvlan_$macvlanID has been added to subnet $subnetID.."
 }
 
 docker_run(){
-	name = $1
-	image = $2
+	name = "$1"
+	image = "$2"
 
 	sudo docker run -itd --name $name --cap-add NET_ADMIN $image /bin/bash
 	echo "$name container has started from $image image as NET_ADMIN..."
 }
 
 docker_network_connect(){
-	ip_addr = $1
-	macvlan_id = $2
-	container_name = $3
+	ip_addr = "$1"
+	macvlan_id = "$2"
+	container_name = "$3"
 	
 #	example: docker network connect --ip 10.0.11.2 macvlan_211 ovs1
 	sudo docker network connect --ip $ip_addr $macvlan_id $container_name
