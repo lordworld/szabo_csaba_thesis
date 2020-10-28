@@ -46,38 +46,38 @@ docker_init(){
 }
 
 macvlan_add(){
-	subnetID = "$1"
-	macvlanID = "$2"
+	SUBNET="$1"
+	MACVLAN="$2"
 
 	sudo docker network create -d macvlan \
-	--subnet=$subnetID \
-	-o parent=ens160.$macvlanID \
-	macvlan_$macvlanID
+	--subnet=$SUBNET \
+	-o parent=ens160.$MACVLAN \
+	macvlan_$MACVLAN
 
-	echo "macvlan_$macvlanID has been added to subnet $subnetID.."
+	echo "macvlan_$MACVLAN has been added to subnet $SUBNET.."
 }
 
 docker_run(){
-	name = "$1"
-	image = "$2"
+	NAME="$1"
+	IMAGE="$2"
 
-	sudo docker run -itd --name $name --cap-add NET_ADMIN $image /bin/bash
-	echo "$name container has started from $image image as NET_ADMIN..."
+	sudo docker run -itd --name $NAME --cap-add NET_ADMIN $IMAGE /bin/bash
+	echo "$NAME container has started from $IMAGE image as NET_ADMIN..."
 }
 
 docker_network_connect(){
-	ip_addr = "$1"
-	macvlan_id = "$2"
-	container_name = "$3"
+	IP="$1"
+	MACVLAN="$2"
+	CONTAINER="$3"
 	
 #	example: docker network connect --ip 10.0.11.2 macvlan_211 ovs1
-	sudo docker network connect --ip $ip_addr $macvlan_id $container_name
-	echo "$container_name docker container has connected to $madvlan_id with IP $ip_addr.."
+	sudo docker network connect --ip $IP $MACVLAN $CONTAINER
+	echo "$CONTAINER docker container has connected to $MACVLAN with IP $IP.."
 }
 
 docker_exec(){
 	# you can add any parameters...
-	sudo docker exec $@
+	sudo docker exec "$@"
 	echo "sudo docker exec $@"
 	read Verify
 }
