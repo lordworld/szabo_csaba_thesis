@@ -62,7 +62,7 @@ docker_run(){
 	IMAGE="$2"
 
 	sudo docker run -itd --name $NAME --cap-add NET_ADMIN $IMAGE "$3"
-	echo "$NAME container has started from $IMAGE image as NET_ADMIN..."
+	echo "$NAME container has started from $IMAGE image as NET_ADMIN in $3..."
 }
 
 docker_network_connect(){
@@ -229,7 +229,7 @@ linux1() {
 	read Verify
 	
 	# Verify:
-		docker network ls
+		sudo docker network ls
 	#	docker network inspect macvlan_xyz> | bridge | type…
 	#	ip addr show 
 	#	Brctl show
