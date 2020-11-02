@@ -51,14 +51,14 @@ docker_init(){
 macvlan_add(){
 	SUBNET="$1"
 	MACVLAN="$2"
-	IF="$3"
+	INT="$3"
 
 	sudo docker network create -d macvlan \
 	--subnet=$SUBNET \
-	-o parent="$IF".$MACVLAN \
+	-o parent="$INT".$MACVLAN \
 	macvlan_$MACVLAN
 
-	echo "macvlan_$MACVLAN has been added to subnet $SUBNET attached to $IF.."
+	echo "macvlan_$MACVLAN has been added to subnet $SUBNET attached to $INT.."
 
 	echo "Press a button.."
 	read Verify
@@ -110,7 +110,7 @@ linux1() {
 	
 	docker_init
 
-	IF="$1"
+	INT="$1"
 
 	echo "aliases: docker, c_ovs1, c_ovs3, c_ctr"
 	alias docker='sudo docker'
@@ -127,35 +127,35 @@ linux1() {
 	echo "Install OVS1 docker network interfaces: macvlan211, macvlan213, macvlan312, macvlan213, macvlan400, macvlan511"
 
 #	macvlan211
-	macvlan_add 10.0.11.0/30 211 "$IF"
+	macvlan_add 10.0.11.0/30 211 "$INT"
 #	docker network create -d macvlan \
 #	--subnet=10.0.11.0/30 \
 #	-o parent=ens160.211 \
 #	macvlan_211
 	
 #	macvlan213
-	macvlan_add 10.0.31.0/30 213 "$IF"
+	macvlan_add 10.0.31.0/30 213 "$INT"
 
 #	macvlan312
-	macvlan_add 172.16.12.0/29 312 "$IF"
+	macvlan_add 172.16.12.0/29 312 "$INT"
 		
 #	macvlan313
-	macvlan_add 172.16.13.0/29 313 "$IF"
+	macvlan_add 172.16.13.0/29 313 "$INT"
 		
 #	macvlan400
-	macvlan_add 172.16.0.0/28 400 "$IF"
+	macvlan_add 172.16.0.0/28 400 "$INT"
 
 #	macvlan511
-	macvlan_add 192.168.1.0/29 511 "$IF"
+	macvlan_add 192.168.1.0/29 511 "$INT"
 
 # OVS3 docker network interface
 	echo "Install OVS3 docker network interfaces: macvlan334, macvlan533"
 
 #	macvlan334
-	macvlan_add 172.16.34.0/29 334 "$IF"
+	macvlan_add 172.16.34.0/29 334 "$INT"
 	
 #	macvlan533
-	macvlan_add 192.168.3.0/29 533 "$IF"
+	macvlan_add 192.168.3.0/29 533 "$INT"
 
 # Ryu
 	echo "Run Ryu controller from osrg/run and connect to macvlan400"
@@ -250,7 +250,7 @@ linux2() {
 	
 	docker_init
 
-	IF="$1"
+	INT="$1"
 	
 	echo "aliases: docker, c_ovs2, c_ovs4"
 	alias docker='sudo docker'
@@ -262,19 +262,19 @@ linux2() {
 	echo "Install OVS2 docker network interfaces: macvlan223, macvlan312, macvlan324, macvlan400, macvlan522"
 	
 #	Macvlan223
-	macvlan_add 10.0.32.0/30 223 "$IF"
+	macvlan_add 10.0.32.0/30 223 "$INT"
 	
 #	Macvlan312
-	macvlan_add 172.16.12.0/29 312 "$IF"
+	macvlan_add 172.16.12.0/29 312 "$INT"
 	
 #	Macvlan324
-	macvlan_add 172.16.24.0/29 324 "$IF"
+	macvlan_add 172.16.24.0/29 324 "$INT"
 		
 #	Macvlan400
-	macvlan_add 172.16.0.0/28 400 "$IF"
+	macvlan_add 172.16.0.0/28 400 "$INT"
 		
 #	Macvlan522
-	macvnal_add 192.168.2.0/29 522 "$IF"
+	macvnal_add 192.168.2.0/29 522 "$INT"
 
 	echo "macvlans for ovs2 has added. Everything is okay?"
 	read Verify
@@ -282,10 +282,10 @@ linux2() {
 # OVS4 docker network interface
 	echo "Install OVS4 docker network interfaces: macvlan334, macvlan544"
 #	macvlan334
-	macvlan_add 172.16.34.0/29 334 "$IF"
+	macvlan_add 172.16.34.0/29 334 "$INT"
 	
 #	Macvlan544
-	macvlan_add 192.168.4.0/29 544 "$IF"
+	macvlan_add 192.168.4.0/29 544 "$INT"
 
 	echo "macvlans for ovs4 has added. Everything is okay?"
 	read Verify
@@ -369,21 +369,22 @@ Options:
 EOF
 }
 
-IF="$2"
+INT="$2"
 
-if [ -z "$IF"] then
-	IF="ens160"
+if [ -z "$INT"] 
+then
+	INT="ens160"
 fi
 
 case $1 in
 	"linux1")
 		shift
-		linux1 "$IF"
+		linux1 "$INT"
 		exit 0
 		;;
 	"linux2")
 		shift
-		linux2 "$IF"
+		linux2 "$INT"
 		exit 0
 		;;	
 	-h | --help)
