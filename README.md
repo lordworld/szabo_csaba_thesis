@@ -2,13 +2,17 @@
 
 Steps to install:
 1. download the file 
+
 git clone https://github.com/lordworld/szabo_csaba_thesis.git
 
 2. change the permissions
+
 cd szabo_csaba_thesis/
+
 chmod 777 ./linux_config.sh
 
 3. run the command.. 
+
 ./linux_config.sh
 
 Usage of command: 
