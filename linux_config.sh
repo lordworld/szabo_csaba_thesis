@@ -68,7 +68,7 @@ docker_run(){
 	NAME="$1"
 	IMAGE="$2"
 
-	if [ -z "$3"] # if no $3 then true
+	if [ -z "$3" ] # if no $3 then true
 	then
 		echo "No 3. argument"
 		sudo docker run -itd --name $NAME --cap-add NET_ADMIN $IMAGE
