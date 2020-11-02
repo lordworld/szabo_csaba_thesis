@@ -1,7 +1,7 @@
 # szabo_csaba_thesis
 
 Steps to install:
-1. download the file
+1. download the file 
 git clone https://github.com/lordworld/szabo_csaba_thesis.git
 
 2. change the permissions
