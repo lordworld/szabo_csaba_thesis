@@ -27,3 +27,8 @@ Commands:
  
 Options:
   -h, --help        display this help message.
+
+In case of error:
+  git stash push --include-untracked
+  git stash drop
+  git pull origin main
