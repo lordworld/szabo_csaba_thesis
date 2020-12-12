@@ -205,7 +205,7 @@ linux1() {
 	echo "Configure OVS1 bridge (ovs-br1)"
 	# docker_exec ovs1 /usr/share/openvswitch/scripts/ovs-ctl start
 	docker_exec ovs1 ovs-vsctl add-br ovs-br1
-#	docker exec ovs1 ifconfig ovs-br1 (*IP* netmask *netmask*) up
+	docker_exec ovs1 ifconfig ovs-br1 up
 #	Verify:
 	docker_exec ovs1 ovs-vsctl show
 	
@@ -227,6 +227,8 @@ linux1() {
 	echo "Configure OVS3 bridge (ovs-br3)"
 	# docker_exec ovs3 /usr/share/openvswitch/scripts/ovs-ctl start
 	docker_exec ovs3 ovs-vsctl add-br ovs-br3
+
+	docker_exec ovs3 ifconfig ovs-br3 up
 	
 #	Verify:
 	docker_exec ovs3 ovs-vsctl show
@@ -319,8 +321,10 @@ linux2() {
 # OVS2 br config
 	echo "Configure OVS2 bridge (ovs-br1)"
 #	docker_exec ovs2 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker_exec ovs2 ovs-vsctl add-br ovs-br1
-#	docker exec ovs2 ifconfig ovs-br1 (*IP* netmask *netmask*) up
+	docker_exec ovs2 ovs-vsctl add-br ovs-br2
+
+	docker_exec ovs2 ifconfig ovs-br2 up
+
 #	Verify:       
 	docker_exec ovs2 ovs-vsctl show
 	read Verify
@@ -335,12 +339,14 @@ linux2() {
 	docker_exec ovs2 ovs-vsctl set-controller ovs-br2 tcp:172.16.0.10
 	
 #	Verify:	
-	docker_exec ovs1 ovs-vsctl show
+	docker_exec ovs2 ovs-vsctl show
 
 # OVS4 br config
 	echo "Configure OVS4 bridge (ovs-br4)"
 #	docker_exec ovs4 /usr/share/openvswitch/scripts/ovs-ctl start
-	docker_exec ovs4 ovs-vsctl add-br ovs-br3
+	docker_exec ovs4 ovs-vsctl add-br ovs-br4
+
+	docker_exec ovs4 ifconfig ovs-br4 up
 	
 #	Verify:
 	docker_exec ovs4 ovs-vsctl show
